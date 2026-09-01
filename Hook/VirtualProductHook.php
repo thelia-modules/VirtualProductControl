@@ -10,53 +10,58 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace VirtualProductControl\Hook;
 
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Thelia\Core\Event\Hook\HookRenderEvent;
 use Thelia\Core\Hook\BaseHook;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Core\Security\SecurityContext;
+use Thelia\Core\Template\Parser\ParserResolver;
 use Thelia\Model\ModuleQuery;
 use Thelia\Model\ProductQuery;
 
-/**
- * Class VirtualProductHook.
- *
- * @author Manuel Raynaud <manu@raynaud.io>
- */
 class VirtualProductHook extends BaseHook
 {
-    /**
-     * @var SecurityContext
-     */
-    protected $securityContext;
+    public function __construct(
+        private readonly SecurityContext $securityContext,
+        ?EventDispatcherInterface $dispatcher = null,
+        ?ParserResolver $parserResolver = null,
+    ) {
+        parent::__construct($dispatcher, $parserResolver);
+    }
 
-    public function __construct(SecurityContext $securityContext)
+    public static function getSubscribedHooks(): array
     {
-        $this->securityContext = $securityContext;
+        return [
+            'main.before-content' => [
+                ['type' => 'back', 'method' => 'onMainBeforeContent'],
+            ],
+        ];
     }
 
     public function onMainBeforeContent(HookRenderEvent $event): void
     {
-        if ($this->securityContext->isGranted(
-            ['ADMIN'],
-            [AdminResources::PRODUCT],
-            [],
-            [AccessManager::VIEW]
-        )) {
-            $products = ProductQuery::create()
-                ->filterByVirtual(1)
-                ->filterByVisible(1)
-                ->count();
-
-            if ($products > 0) {
-                $deliveryModule = ModuleQuery::create()->retrieveVirtualProductDelivery();
-
-                if (false === $deliveryModule) {
-                    $event->add($this->render('virtual-delivery-warning.html'));
-                }
-            }
+        if (!$this->securityContext->isGranted(['ADMIN'], [AdminResources::PRODUCT], [], [AccessManager::VIEW])) {
+            return;
         }
+
+        $virtualProductCount = ProductQuery::create()
+            ->filterByVirtual(1)
+            ->filterByVisible(1)
+            ->count();
+
+        if ($virtualProductCount === 0) {
+            return;
+        }
+
+        if (false !== ModuleQuery::create()->retrieveVirtualProductDelivery()) {
+            return;
+        }
+
+        $event->add($this->render('virtual-delivery-warning.html.twig'));
     }
 }
