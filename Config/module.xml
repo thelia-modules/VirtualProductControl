@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module>
+<module xmlns="http://thelia.net/schema/dic/module"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://thelia.net/schema/dic/module http://thelia.net/schema/dic/module/module-2_1.xsd">
     <fullnamespace>VirtualProductControl\VirtualProductControl</fullnamespace>
     <descriptive locale="en_US">
         <title>Virtual Product Controller</title>
@@ -9,12 +11,16 @@
         <title>Contrôle de produit virtuel</title>
         <description>Vérifie qu'un module de livraison pour produit virtuel soit activé si des produits virtuels existent</description>
     </descriptive>
-    <version>2.6.0</version>
+    <languages>
+        <language>en_US</language>
+        <language>fr_FR</language>
+    </languages>
+    <version>3.0.0</version>
     <author>
         <name>Manuel Raynaud</name>
         <email>manu@raynaud.io</email>
     </author>
     <type>classic</type>
-    <thelia>2.6.0</thelia>
-    <stability>alpha</stability>
+    <thelia>3.0.0</thelia>
+    <stability>prod</stability>
 </module>
